@@ -5,9 +5,12 @@
 
 export const MESSAGES = {
   // Initial greeting when user sends first message
-  INITIAL_PROMPT: `Olá, aqui você pode consultar o seu QR Code de acesso para o FENTY BEAUTY COFFEE PARTY!
+  INITIAL_PROMPT: `Olá, sou o assistente virtual do *FENTY BEAUTY COFFEE PARTY*  🤩!\n
+  Por aqui você pode consultar o seu QR Code de acesso para evento!\n
+  É bem sim simples, vou te ajudar! 🦾\n
 
-Digite o seu CPF (00000000000 ou 000.000.000-00).`,
+  Digite o seu CPF, sem espaços, sem pontos, sem hífens, apenas números e sem outro texto.\n
+  Exemplo: 00000000000 `,
 
   // When CPF format is invalid
   INVALID_CPF: `CPF inválido. Tente novamente (apenas números, 11 dígitos).`,
@@ -22,7 +25,11 @@ Digite o seu CPF (00000000000 ou 000.000.000-00).`,
   NOT_FOUND: `Que pena, não foi possível localizar o seu agendamento.
 
 Caso já tenha feito o agendamento, verifique o horário e o seu QR Code de acesso no link abaixo:
-https://www.azcorporate.com.br/bvolt/46110/fenty`,
+https://www.azcorporate.com.br/bvolt/46110/fenty \n
+
+Lembrando que os horarios já foram todos agendados, 
+caso não tenha feito o agendamento previamente, é possível comparecer no dia sem hora marcada.
+`,
 
   // System messages
   SYSTEM: {
