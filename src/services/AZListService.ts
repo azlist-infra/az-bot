@@ -114,32 +114,43 @@ export class AZListService {
 
       const endpoint = `/api/pax/cpf/${cleanCpf}/event/${config.azList.eventId}`;
       
-      const response: AxiosResponse<AZListPaxResponse> = await this.axiosInstance.get(endpoint);
+      const response = await this.axiosInstance.get(endpoint);
 
-      if (response.data.success && response.data.data?.pax) {
-        const pax = response.data.data.pax;
+      // Verificar se há erro na resposta
+      if (response.data.error) {
+        logger.info(`CPF ${cleanCpf} not found in AZ List: ${response.data.error}`);
         
-        logger.info(`CPF ${cleanCpf} found in AZ List: ${pax.name}`);
+        return {
+          found: false,
+          error: response.data.error,
+        };
+      }
+
+      // Se chegou aqui e tem dados, é porque encontrou
+      if (response.data && response.data.id) {
+        const pax = response.data;
+        
+        logger.info(`CPF ${cleanCpf} found in AZ List: ${pax.Name}`);
         
         return {
           found: true,
           userData: {
-            id: pax.id,
-            name: pax.name,
-            ...(pax.email && { email: pax.email }),
-            cpf: pax.cpf,
-            ...(pax.phone && { phone: pax.phone }),
-            searchKey: pax.searchKey,
-            status: pax.status,
+            id: pax.id.toString(),
+            name: pax.Name,
+            ...(pax.Email && { email: pax.Email }),
+            cpf: pax.Cpf,
+            ...(pax.Phone && { phone: pax.Phone }),
+            searchKey: pax.SearchKey,
+            status: 'active',
           },
-          lists: response.data.data.lists || [],
+          lists: [], // API não retorna lists neste formato
         };
       } else {
-        logger.info(`CPF ${cleanCpf} not found in AZ List`);
+        logger.info(`CPF ${cleanCpf} not found - unexpected response format`);
         
         return {
           found: false,
-          error: response.data.message || 'CPF not found',
+          error: 'Unexpected API response format',
         };
       }
 
