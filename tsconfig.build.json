@@ -4,10 +4,7 @@
     "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "baseUrl": "./src",
-    "paths": {},
-    "moduleResolution": "node"
+    "sourceMap": true
   },
   "include": [
     "src/**/*"
