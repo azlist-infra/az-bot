@@ -42,22 +42,34 @@ export class ConversationService {
       
       logger.info(`Processing message from ${phoneNumber}: "${messageText}"`);
 
-      // Verificar se é um CPF
-      const cpf = extractCpfFromMessage(messageText);
+      // Verificar se parece com CPF (sem validar dígitos ainda)
+      const cpfPatterns = [
+        /\b\d{11}\b/,                          // 12345678901
+        /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/,      // 123.456.789-01
+        /\b\d{3}\s\d{3}\s\d{3}\s\d{2}\b/,     // 123 456 789 01
+      ];
       
-      logger.info(`CPF extraction from "${messageText}":`, {
-        extractedCpf: cpf,
-        isValid: cpf ? isValidCpf(cpf) : false,
+      let potentialCpf = null;
+      for (const pattern of cpfPatterns) {
+        const match = messageText.replace(/\D/g, '').match(/\d{11}/);
+        if (match) {
+          potentialCpf = match[0];
+          break;
+        }
+      }
+      
+      logger.info(`CPF detection from "${messageText}":`, {
+        potentialCpf,
         messageLength: messageText.length
       });
       
-      if (cpf && isValidCpf(cpf)) {
-        // É um CPF válido, processar
-        logger.info(`Processing valid CPF: ${cpf}`);
-        return await this.processCPF(phoneNumber, cpf);
+      if (potentialCpf) {
+        // Parece ser um CPF, processar (vai validar na API ou dar erro)
+        logger.info(`Processing potential CPF: ${potentialCpf}`);
+        return await this.processCPF(phoneNumber, potentialCpf);
       } else {
         // Qualquer outra mensagem = pedir CPF
-        logger.info(`No valid CPF found in message, sending initial prompt`);
+        logger.info(`No CPF pattern found in message, sending initial prompt`);
         return await this.sendInitialPrompt(phoneNumber);
       }
     } catch (error) {
@@ -100,6 +112,19 @@ export class ConversationService {
    */
   private async processCPF(phoneNumber: string, cpf: string): Promise<MessageProcessingResult> {
     try {
+      // Primeiro verificar se CPF tem formato básico válido
+      if (cpf.length !== 11 || !/^\d{11}$/.test(cpf)) {
+        logger.info(`CPF ${cpf} has invalid format, sending NOT_FOUND message`);
+        await this.zapiService.sendTextMessage(phoneNumber, MESSAGES.NOT_FOUND);
+        await this.saveMessage(phoneNumber, MESSAGES.NOT_FOUND, 'out', 'text');
+        
+        return {
+          success: true,
+          action: 'cpf_not_found',
+          messagesSent: 1,
+        };
+      }
+      
       // Validar CPF na AZ List
       logger.info(`Validating CPF ${cpf} with AZ List API...`);
       const validation = await this.azListService.validateCPF(cpf);
