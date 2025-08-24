@@ -225,6 +225,12 @@ export class ZAPIService {
    */
   public extractMessageText(webhookData: WebhookMessage): string | null {
     try {
+      // Formato Z-API real (baseado nos logs capturados)
+      if ((webhookData as any).text?.message) {
+        return (webhookData as any).text.message.trim();
+      }
+      
+      // Formato original (manter compatibilidade)
       const message = webhookData.message?.message;
       
       if (message?.conversation) {
@@ -247,8 +253,13 @@ export class ZAPIService {
    */
   public extractPhoneNumber(webhookData: WebhookMessage): string | null {
     try {
-      const remoteJid = webhookData.message?.key?.remoteJid;
+      // Formato Z-API real (baseado nos logs capturados)
+      if ((webhookData as any).phone) {
+        return this.cleanPhoneNumber((webhookData as any).phone);
+      }
       
+      // Formato original (manter compatibilidade)
+      const remoteJid = webhookData.message?.key?.remoteJid;
       if (remoteJid) {
         // Remove @s.whatsapp.net suffix and clean
         return this.cleanPhoneNumber(remoteJid.replace('@s.whatsapp.net', ''));
