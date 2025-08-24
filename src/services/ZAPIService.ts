@@ -276,6 +276,18 @@ export class ZAPIService {
    * Check if message is from user (not from bot)
    */
   public isIncomingMessage(webhookData: WebhookMessage): boolean {
+    // Formato Z-API real (baseado nos logs capturados)
+    if (typeof (webhookData as any).fromMe === 'boolean') {
+      const isFromUser = !(webhookData as any).fromMe;
+      logger.info('Z-API fromMe check', { 
+        fromMe: (webhookData as any).fromMe, 
+        isFromUser,
+        phone: (webhookData as any).phone 
+      });
+      return isFromUser;
+    }
+    
+    // Formato original (manter compatibilidade)
     return !webhookData.message?.key?.fromMe;
   }
 
