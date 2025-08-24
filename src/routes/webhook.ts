@@ -87,8 +87,8 @@ router.get('/health', async (req, res) => {
   }
 });
 
-// CATCH-ALL route for debugging Z-API - SALVA NO MONGO
-router.all('*', async (req, res) => {
+// CATCH-ALL route for debugging Z-API - SALVA NO MONGO (só para rotas não definidas)
+router.all('/zapi/*', async (req, res) => {
   try {
     // Salvar no MongoDB para contornar limitação do Render Free
     const { Message } = await import('../models');
