@@ -45,11 +45,19 @@ export class ConversationService {
       // Verificar se é um CPF
       const cpf = extractCpfFromMessage(messageText);
       
+      logger.info(`CPF extraction from "${messageText}":`, {
+        extractedCpf: cpf,
+        isValid: cpf ? isValidCpf(cpf) : false,
+        messageLength: messageText.length
+      });
+      
       if (cpf && isValidCpf(cpf)) {
         // É um CPF válido, processar
+        logger.info(`Processing valid CPF: ${cpf}`);
         return await this.processCPF(phoneNumber, cpf);
       } else {
         // Qualquer outra mensagem = pedir CPF
+        logger.info(`No valid CPF found in message, sending initial prompt`);
         return await this.sendInitialPrompt(phoneNumber);
       }
     } catch (error) {
@@ -93,14 +101,29 @@ export class ConversationService {
   private async processCPF(phoneNumber: string, cpf: string): Promise<MessageProcessingResult> {
     try {
       // Validar CPF na AZ List
+      logger.info(`Validating CPF ${cpf} with AZ List API...`);
       const validation = await this.azListService.validateCPF(cpf);
       
+      logger.info(`AZ List validation result for CPF ${cpf}:`, {
+        found: validation.found,
+        error: validation.error,
+        hasUserData: !!validation.userData
+      });
+      
       if (validation.found && validation.userData) {
-        // CPF encontrado - gerar QR Code
-        const qrData = JSON.stringify({ SearchKey: validation.userData.searchKey });
-        const qrCodeResult = await this.qrCodeService.generateQRCode(qrData);
+        // CPF encontrado - gerar QR Code com formato correto
+        const searchKey = validation.userData.searchKey || cpf; // usar SearchKey da API ou CPF como fallback
+        const qrCodeAZKey = `{"SearchKey": "${searchKey}"}`;
         
-        // Enviar QR Code
+        logger.info(`Generating QR Code for CPF ${cpf}:`, {
+          searchKey,
+          qrCodeData: qrCodeAZKey
+        });
+        
+        // Gerar imagem QR Code com os dados corretos
+        const qrCodeResult = await this.qrCodeService.generateQRCode(qrCodeAZKey);
+        
+        // Enviar QR Code como imagem
         await this.zapiService.sendImageMessage(phoneNumber, qrCodeResult.base64, MESSAGES.FOUND_CAPTION);
         
         // Salvar mensagens
@@ -113,6 +136,7 @@ export class ConversationService {
         };
       } else {
         // CPF não encontrado
+        logger.info(`CPF ${cpf} not found, sending NOT_FOUND message`);
         await this.zapiService.sendTextMessage(phoneNumber, MESSAGES.NOT_FOUND);
         await this.saveMessage(phoneNumber, MESSAGES.NOT_FOUND, 'out', 'text');
         
