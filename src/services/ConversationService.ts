@@ -137,16 +137,16 @@ export class ConversationService {
         // CPF encontrado - gerar QR Code com formato correto
         const searchKey = validation.userData.searchKey || cpf; // usar SearchKey da API ou CPF como fallback
         const qrCodeAZKey = `{"SearchKey": "${searchKey}"}`;
-        const qrCode = Buffer.from(qrCodeAZKey).toString('base64'); // btoa equivalent
+        const qrCodeBase64 = Buffer.from(qrCodeAZKey).toString('base64'); // btoa equivalent
         
         logger.info(`Generating QR Code for CPF ${cpf}:`, {
           searchKey,
           qrCodeData: qrCodeAZKey,
-          btoa: qrCode.substring(0, 50) + '...'
+          btoa: qrCodeBase64
         });
         
-        // Gerar imagem QR Code com dados criptografados (btoa)
-        const qrCodeResult = await this.qrCodeService.generateQRCode(qrCode);
+        // Gerar imagem QR Code com dados base64 (igual ao seu exemplo)
+        const qrCodeResult = await this.qrCodeService.generateQRCode(qrCodeBase64);
         
         // Enviar QR Code como imagem
         await this.zapiService.sendImageMessage(phoneNumber, qrCodeResult.base64, MESSAGES.FOUND_CAPTION);
