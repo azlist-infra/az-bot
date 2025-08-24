@@ -55,6 +55,10 @@ export class QRCodeService {
 
       // Extract base64 from data URL (remove "data:image/png;base64," prefix)
       const base64Image = qrCodeDataUrl.split(',')[1];
+      
+      if (!base64Image) {
+        throw new Error('Failed to extract base64 from QR code data URL');
+      }
 
       const result: QRCodeGenerationResult = {
         base64: base64Image,

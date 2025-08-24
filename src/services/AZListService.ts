@@ -126,13 +126,13 @@ export class AZListService {
           userData: {
             id: pax.id,
             name: pax.name,
-            email: pax.email,
+            ...(pax.email && { email: pax.email }),
             cpf: pax.cpf,
-            phone: pax.phone,
+            ...(pax.phone && { phone: pax.phone }),
             searchKey: pax.searchKey,
             status: pax.status,
           },
-          lists: response.data.data.lists,
+          lists: response.data.data.lists || [],
         };
       } else {
         logger.info(`CPF ${cleanCpf} not found in AZ List`);
@@ -212,13 +212,13 @@ export class AZListService {
           userData: {
             id: pax.id,
             name: pax.name,
-            email: pax.email,
+            ...(pax.email && { email: pax.email }),
             cpf: pax.cpf,
-            phone: pax.phone,
+            ...(pax.phone && { phone: pax.phone }),
             searchKey: pax.searchKey,
             status: pax.status,
           },
-          lists: response.data.data.lists,
+          lists: response.data.data.lists || [],
         };
       }
 

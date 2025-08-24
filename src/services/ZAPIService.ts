@@ -172,7 +172,7 @@ export class ZAPIService {
       const payload: SendImageRequest = {
         phone: cleanPhone,
         image: imageData,
-        caption: caption,
+        ...(caption && { caption }),
       };
 
       const response: AxiosResponse = await this.axiosInstance.post('/send-image', payload);

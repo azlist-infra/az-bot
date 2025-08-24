@@ -50,7 +50,7 @@ function calculateCpfDigit(cpf: string, position: number): number {
   let weight = position + 1;
   
   for (let i = 0; i < position; i++) {
-    sum += parseInt(cpf[i]) * weight--;
+    sum += parseInt(cpf[i]!) * weight--;
   }
   
   const remainder = sum % 11;
@@ -70,13 +70,13 @@ export function isValidCpf(cpf: string): boolean {
   
   // Calculate first check digit
   const firstDigit = calculateCpfDigit(cleaned, 9);
-  if (firstDigit !== parseInt(cleaned[9])) {
+  if (firstDigit !== parseInt(cleaned[9]!)) {
     return false;
   }
   
   // Calculate second check digit
   const secondDigit = calculateCpfDigit(cleaned, 10);
-  if (secondDigit !== parseInt(cleaned[10])) {
+  if (secondDigit !== parseInt(cleaned[10]!)) {
     return false;
   }
   

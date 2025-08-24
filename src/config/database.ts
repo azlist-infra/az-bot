@@ -31,7 +31,6 @@ export class DatabaseConnection {
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
         bufferCommands: false,
-        bufferMaxEntries: 0,
       });
 
       this.isConnected = true;

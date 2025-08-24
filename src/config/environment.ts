@@ -35,6 +35,9 @@ const envSchema = joi.object({
     .valid('error', 'warn', 'info', 'debug')
     .default('info'),
   LOG_FILE: joi.string().default('logs/app.log'),
+  
+  // CORS
+  CORS_ORIGIN: joi.string().default('*'),
 }).unknown();
 
 // Validate environment variables
@@ -73,6 +76,9 @@ export interface EnvironmentConfig {
     level: string;
     file: string;
   };
+  cors: {
+    origin: string;
+  };
 }
 
 export const config: EnvironmentConfig = {
@@ -103,6 +109,9 @@ export const config: EnvironmentConfig = {
   logging: {
     level: envVars.LOG_LEVEL as string,
     file: envVars.LOG_FILE as string,
+  },
+  cors: {
+    origin: envVars.CORS_ORIGIN as string,
   },
 };
 

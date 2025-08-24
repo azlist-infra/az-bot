@@ -14,6 +14,11 @@ export interface IConversation extends Document {
   };
   createdAt: Date;
   updatedAt: Date;
+  
+  // Instance methods
+  updateState(newState: ConversationState): void;
+  incrementAttempts(): number;
+  reset(): void;
 }
 
 const ConversationSchema = new Schema<IConversation>(
