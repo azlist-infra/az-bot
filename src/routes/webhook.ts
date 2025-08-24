@@ -87,23 +87,85 @@ router.get('/health', async (req, res) => {
   }
 });
 
-// CATCH-ALL route for debugging Z-API
-router.all('*', (req, res) => {
-  logger.info('CATCH-ALL: Unknown route accessed', {
-    method: req.method,
-    url: req.url,
-    originalUrl: req.originalUrl,
-    body: req.body,
-    query: req.query,
-    headers: req.headers,
-    ip: req.ip
-  });
+// CATCH-ALL route for debugging Z-API - SALVA NO MONGO
+router.all('*', async (req, res) => {
+  try {
+    // Salvar no MongoDB para contornar limitação do Render Free
+    const { Message } = await import('../models');
+    
+    await Message.create({
+      from: 'DEBUG_ENDPOINT',
+      message: `${req.method} ${req.originalUrl}`,
+      caption: JSON.stringify({
+        method: req.method,
+        url: req.url,
+        originalUrl: req.originalUrl,
+        body: req.body,
+        query: req.query,
+        headers: req.headers,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        timestamp: new Date()
+      }),
+      deliveredAt: new Date(),
+      status: 'sent',
+      direction: 'in',
+      kind: 'system',
+      meta: {
+        type: 'DEBUG_REQUEST',
+        endpoint: req.originalUrl,
+        method: req.method
+      }
+    });
+
+    logger.info('CATCH-ALL: Request saved to MongoDB', {
+      method: req.method,
+      url: req.originalUrl
+    });
+  } catch (error) {
+    logger.error('Error saving debug request:', error);
+  }
+
   res.status(200).json({
     success: true,
-    message: 'Route logged for debugging',
+    message: 'Request logged to database for debugging',
     method: req.method,
-    url: req.url
+    url: req.url,
+    timestamp: new Date()
   });
+});
+
+/**
+ * Get debug logs from MongoDB (contorna limitação Render Free)
+ * GET /webhook/debug-logs
+ */
+router.get('/debug-logs', async (req, res) => {
+  try {
+    const { Message } = await import('../models');
+    
+    const debugLogs = await Message.find({
+      from: 'DEBUG_ENDPOINT'
+    })
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .lean();
+
+    res.json({
+      success: true,
+      logs: debugLogs.map(log => ({
+        id: log._id,
+        endpoint: log.message,
+        details: JSON.parse(log.caption || '{}'),
+        timestamp: log.createdAt
+      }))
+    });
+  } catch (error) {
+    logger.error('Error getting debug logs:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error getting debug logs'
+    });
+  }
 });
 
 /**
