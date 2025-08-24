@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Sistema de envio de QR Code via WhatsApp com validação de CPF",
   "main": "dist/index.js",
+  "_moduleAliases": {
+    "@": "dist"
+  },
   "scripts": {
     "build": "npm run clean && tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
@@ -33,6 +36,7 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "joi": "^17.11.0",
+    "module-alias": "^2.2.3",
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "qrcode": "^1.5.3",

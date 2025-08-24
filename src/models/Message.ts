@@ -18,7 +18,6 @@ const MessageSchema = new Schema<IMessage>(
     from: {
       type: String,
       required: true,
-      index: true,
       trim: true,
     },
     message: {

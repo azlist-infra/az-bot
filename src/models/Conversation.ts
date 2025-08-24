@@ -26,8 +26,6 @@ const ConversationSchema = new Schema<IConversation>(
     phoneNumber: {
       type: String,
       required: true,
-      unique: true,
-      index: true,
       trim: true,
     },
     state: {
@@ -39,7 +37,6 @@ const ConversationSchema = new Schema<IConversation>(
     cpf: {
       type: String,
       trim: true,
-      sparse: true, // allows multiple null values
     },
     lastMessageAt: {
       type: Date,
