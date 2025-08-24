@@ -35,6 +35,34 @@ router.put('/zapi/receive', async (req, res) => {
 });
 
 /**
+ * Z-API Webhook endpoint with instance ID (correct format)
+ * POST/PUT /webhook/zapi/:instanceId/receive
+ */
+router.post('/zapi/:instanceId/receive', async (req, res) => {
+  try {
+    await webhookController.handleZAPIWebhook(req, res);
+  } catch (error) {
+    logger.error('Error in webhook route:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+});
+
+router.put('/zapi/:instanceId/receive', async (req, res) => {
+  try {
+    await webhookController.handleZAPIWebhook(req, res);
+  } catch (error) {
+    logger.error('Error in webhook route:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+});
+
+/**
  * Health check endpoint
  * GET /webhook/health
  */
