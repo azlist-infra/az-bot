@@ -7,9 +7,22 @@ const webhookController = WebhookController.getInstance();
 
 /**
  * Z-API Webhook endpoint
- * POST /webhook/zapi/receive
+ * POST/PUT /webhook/zapi/receive
  */
 router.post('/zapi/receive', async (req, res) => {
+  try {
+    await webhookController.handleZAPIWebhook(req, res);
+  } catch (error) {
+    logger.error('Error in webhook route:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+});
+
+// Support PUT method as well (some Z-API configurations use PUT)
+router.put('/zapi/receive', async (req, res) => {
   try {
     await webhookController.handleZAPIWebhook(req, res);
   } catch (error) {
