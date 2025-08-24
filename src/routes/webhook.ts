@@ -63,11 +63,20 @@ router.put('/zapi/:instanceId/receive', async (req, res) => {
 });
 
 /**
- * Health check endpoint
+ * Health check endpoint - ALSO LOG ALL REQUESTS FOR DEBUG
  * GET /webhook/health
  */
 router.get('/health', async (req, res) => {
   try {
+    logger.info('HEALTH ENDPOINT ACCESSED', {
+      method: req.method,
+      url: req.url,
+      body: req.body,
+      query: req.query,
+      headers: req.headers,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
     await webhookController.healthCheck(req, res);
   } catch (error) {
     logger.error('Error in health check route:', error);
@@ -76,6 +85,25 @@ router.get('/health', async (req, res) => {
       error: 'Health check failed',
     });
   }
+});
+
+// CATCH-ALL route for debugging Z-API
+router.all('*', (req, res) => {
+  logger.info('CATCH-ALL: Unknown route accessed', {
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    body: req.body,
+    query: req.query,
+    headers: req.headers,
+    ip: req.ip
+  });
+  res.status(200).json({
+    success: true,
+    message: 'Route logged for debugging',
+    method: req.method,
+    url: req.url
+  });
 });
 
 /**
