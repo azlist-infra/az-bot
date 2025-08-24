@@ -19,25 +19,7 @@ export const MESSAGES = {
   FOUND_MESSAGE: `Localizamos o seu cadastro, segue o seu QR Code de Acesso.`,
 
   // Caption for QR Code image when found
-  FOUND_CAPTION: `FENTY BEAUTY COFFEE PARTY SÃO PAULO 🧡\n
-A marca de beleza traz uma nova experiência gratuita ao Brasil: um espaço aberto para criar conexões, descobrir o tom perfeito de base Fenty Beauty, tomar um café e se divertir!\n
-
-Para facilitar seu credenciamento, estamos te enviando o seu QR Code que te dará acesso ao evento no dia. É super fácil!\n
-
-Agora é só se preparar e nos encontramos lá! 🤩\n
-
-Confira o horário do seu agendamento no link abaixo:\n
-https://www.azcorporate.com.br/bvolt/46110/fenty\n\n
-
-📍 Lote Pinheiros | R. Padre João Gonçalves, 80 - Pinheiros\n
-📅 Data: 30 de agosto de 2025\n
-⏰ Das 10h00 às 18h00\n\n
-
-⚠️ Atenção\n
-⌛ Permanência de até 2 horas por pessoa\n
-🪪 Apresentar documento com foto\n
-
-Nos vemos lá! 👋🏼`,
+  FOUND_CAPTION: `*FENTY BEAUTY COFFEE PARTY SÃO PAULO* 🧡\nA marca de beleza traz uma nova experiência gratuita ao Brasil: um espaço aberto para criar conexões, descobrir o tom perfeito de base Fenty Beauty, tomar um café e se divertir!\n\nPara facilitar seu credenciamento, estamos te enviando o seu *QR Code* que te dará acesso ao evento no dia. É super fácil!\n\nAgora é só se preparar e nos encontramos lá! 🤩\n\nConfira o horário do seu agendamento no link abaixo:\nhttps://www.azcorporate.com.br/bvolt/46110/fenty\n\n📍 Lote Pinheiros | R. Padre João Gonçalves, 80 - Pinheiros\n📅 Data: 30 de agosto de 2025\n⏰ Das 10h00 às 18h00\n\n⚠️ *Atenção*\n⌛ Permanência de até 2 horas por pessoa\n🪪 Apresentar documento com foto\n\nNos vemos lá! 👋🏼`,
 
   // When CPF is not found in AZ List
   NOT_FOUND: `Que pena, não foi possível localizar o seu agendamento.
