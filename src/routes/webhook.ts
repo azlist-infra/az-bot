@@ -63,26 +63,41 @@ router.put('/zapi/:instanceId/receive', async (req, res) => {
 });
 
 /**
- * Health check endpoint - ALSO LOG ALL REQUESTS FOR DEBUG
- * GET /webhook/health
+ * Health check endpoint - TAMBÉM PROCESSA WEBHOOKS Z-API
+ * GET/POST /webhook/health
  */
 router.get('/health', async (req, res) => {
   try {
-    logger.info('HEALTH ENDPOINT ACCESSED', {
-      method: req.method,
-      url: req.url,
-      body: req.body,
-      query: req.query,
-      headers: req.headers,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
     await webhookController.healthCheck(req, res);
   } catch (error) {
     logger.error('Error in health check route:', error);
     res.status(500).json({
       success: false,
       error: 'Health check failed',
+    });
+  }
+});
+
+// POST para health também processar webhooks Z-API
+router.post('/health', async (req, res) => {
+  try {
+    logger.info('Z-API webhook recebido via /health', {
+      body: req.body,
+      headers: req.headers
+    });
+    
+    // Se tem dados de mensagem, processar como webhook
+    if (req.body && req.body.phone && req.body.text) {
+      await webhookController.handleZAPIWebhook(req, res);
+    } else {
+      // Senão, é só health check
+      await webhookController.healthCheck(req, res);
+    }
+  } catch (error) {
+    logger.error('Error in health POST route:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
     });
   }
 });

@@ -293,7 +293,18 @@ export class ZAPIService {
    */
   public validateWebhookData(data: any): data is WebhookMessage {
     try {
-      return (
+      // Formato Z-API real (baseado no log capturado)
+      const isZAPIFormat = (
+        data &&
+        typeof data === 'object' &&
+        data.phone &&
+        data.text &&
+        data.text.message &&
+        typeof data.fromMe === 'boolean'
+      );
+
+      // Formato original esperado (manter compatibilidade)
+      const isOriginalFormat = (
         data &&
         typeof data === 'object' &&
         data.instanceId &&
@@ -302,6 +313,8 @@ export class ZAPIService {
         data.message.key.remoteJid &&
         typeof data.message.key.fromMe === 'boolean'
       );
+
+      return isZAPIFormat || isOriginalFormat;
     } catch (error) {
       logger.error('Error validating webhook data:', error);
       return false;
