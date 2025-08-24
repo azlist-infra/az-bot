@@ -42,20 +42,18 @@ export class ConversationService {
       
       logger.info(`Processing message from ${phoneNumber}: "${messageText}"`);
 
-      // Verificar se parece com CPF (sem validar dígitos ainda)
-      const cpfPatterns = [
-        /\b\d{11}\b/,                          // 12345678901
-        /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/,      // 123.456.789-01
-        /\b\d{3}\s\d{3}\s\d{3}\s\d{2}\b/,     // 123 456 789 01
-      ];
+      // Verificar se parece com CPF (extrair números e ver se tem pelo menos 10-11 dígitos)
+      const numbersOnly = messageText.replace(/\D/g, '');
       
       let potentialCpf = null;
-      for (const pattern of cpfPatterns) {
-        const match = messageText.replace(/\D/g, '').match(/\d{11}/);
-        if (match) {
-          potentialCpf = match[0];
-          break;
-        }
+      
+      // Se tem entre 10-11 dígitos, considerar como tentativa de CPF
+      if (numbersOnly.length >= 10 && numbersOnly.length <= 11) {
+        potentialCpf = numbersOnly.padStart(11, '0'); // completar com zeros se necessário
+      }
+      // Ou se tem exatamente 11 dígitos em qualquer lugar da mensagem
+      else if (numbersOnly.length === 11) {
+        potentialCpf = numbersOnly;
       }
       
       logger.info(`CPF detection from "${messageText}":`, {
