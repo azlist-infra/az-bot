@@ -36,9 +36,18 @@ export class WebhookController {
       // Validate webhook data structure
       if (!this.zapiService.validateWebhookData(req.body)) {
         logger.warn('Invalid webhook data structure', { body: req.body });
-        res.status(400).json({
-          success: false,
-          error: 'Invalid webhook data structure',
+        
+        // TEMPORÁRIO: Log detalhado para debug
+        logger.info('Raw webhook data for debugging:', {
+          body: JSON.stringify(req.body, null, 2),
+          headers: req.headers,
+          method: req.method,
+          url: req.url
+        });
+        
+        res.status(200).json({
+          success: true,
+          message: 'Data logged for debugging',
         });
         return;
       }
