@@ -166,21 +166,13 @@ export class WebhookController {
       }
 
       // Get conversation history
-      const history = await this.conversationService.getConversationHistory(phoneNumber, 20);
+      // Conversation service simplificado - sem histórico persistente
 
       res.status(200).json({
         success: true,
         phoneNumber,
-        messageCount: history.length,
-        messages: history.map(msg => ({
-          id: msg._id,
-          message: msg.message,
-          direction: msg.direction,
-          kind: msg.kind,
-          status: msg.status,
-          createdAt: msg.createdAt,
-          caption: msg.caption,
-        })),
+        message: 'Conversation service simplified - stateless flow',
+        flowType: 'simplified',
       });
 
     } catch (error) {
@@ -208,7 +200,8 @@ export class WebhookController {
         return;
       }
 
-      const success = await this.conversationService.resetConversation(phoneNumber);
+      // No reset needed in simplified flow
+      const success = true;
 
       if (success) {
         res.status(200).json({
