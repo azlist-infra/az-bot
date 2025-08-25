@@ -20,6 +20,19 @@ export interface ZAPIResponse {
   error?: string;
 }
 
+export interface ZAPIChatData {
+  archived: string;
+  pinned: string;
+  messagesUnread: number;
+  phone: string;
+  unread: string;
+  name: string;
+  lastMessageTime: string;
+  isMuted: string;
+  isMarkedSpam: string;
+  muteEndTime?: number;
+}
+
 export interface WebhookMessage {
   instanceId: string;
   message: {
@@ -375,6 +388,43 @@ export class ZAPIService {
     } catch (error) {
       logger.error('Error getting instance status:', error);
       return { connected: false };
+    }
+  }
+
+  /**
+   * Get all chats from Z-API
+   * GET /chats
+   */
+  public async getChats(): Promise<ZAPIChatData[]> {
+    try {
+      logger.info('Fetching chats from Z-API');
+
+      const response: AxiosResponse = await this.axiosInstance.get('/chats');
+
+      if (response.data && response.status === 200) {
+        const chats = Array.isArray(response.data) ? response.data : [];
+        logger.info(`Successfully fetched ${chats.length} chats from Z-API`);
+        return chats;
+      } else {
+        logger.error('Failed to fetch chats from Z-API:', response.data);
+        return [];
+      }
+
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const message = error.response?.data?.message || error.message;
+        
+        logger.error('Z-API get chats error:', {
+          status,
+          message,
+          data: error.response?.data,
+        });
+      } else {
+        logger.error('Unexpected error fetching chats:', error);
+      }
+      
+      return [];
     }
   }
 }

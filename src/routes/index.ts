@@ -1,10 +1,14 @@
 import { Router } from 'express';
 import webhookRoutes from './webhook';
+import { chatRoutes } from './chats';
 
 const router = Router();
 
 // Mount webhook routes
 router.use('/webhook', webhookRoutes);
+
+// Mount chat routes
+router.use('/chats', chatRoutes);
 
 // Health check for the entire API
 router.get('/health', (req, res) => {
