@@ -18,6 +18,13 @@ router.post('/sync', chatController.syncChats.bind(chatController));
 router.post('/sync-pages', chatController.syncChatsByPages.bind(chatController));
 
 /**
+ * GET /api/chats/qrcode-messages
+ * Listar mensagens de QR Code enviadas
+ * NOTA: Esta rota deve vir antes de /:phone para evitar conflitos
+ */
+router.get('/qrcode-messages', chatController.getQRCodeMessages.bind(chatController));
+
+/**
  * GET /api/chats/stats
  * Obter estatísticas dos chats
  * NOTA: Esta rota deve vir antes de /:phone para evitar conflitos

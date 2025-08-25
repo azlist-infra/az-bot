@@ -197,6 +197,42 @@ export class ChatController {
   }
 
   /**
+   * Listar mensagens de QR Code enviadas
+   * GET /api/chats/qrcode-messages
+   */
+  public async getQRCodeMessages(req: Request, res: Response): Promise<void> {
+    try {
+      logger.info('Get QR Code messages requested');
+      
+      const { Message } = await import('@/models/Message');
+      
+      // Buscar todas as mensagens onde qrcodeMessage = true
+      const qrCodeMessages = await Message.find({ 
+        qrcodeMessage: true,
+        direction: 'out',
+        kind: 'image'
+      })
+      .sort({ createdAt: -1 }) // Mais recentes primeiro
+      .select('from message caption deliveredAt createdAt')
+      .lean();
+
+      res.status(200).json({
+        success: true,
+        message: `Found ${qrCodeMessages.length} QR Code messages`,
+        data: qrCodeMessages
+      });
+
+    } catch (error) {
+      logger.error('Error in get QR Code messages endpoint:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error retrieving QR Code messages',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
    * Marcar chat como tendo mensagem enviada
    * PATCH /api/chats/:phone/mark-sent
    */

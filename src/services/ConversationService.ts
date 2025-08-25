@@ -168,8 +168,8 @@ export class ConversationService {
         // Enviar QR Code como imagem
         await this.zapiService.sendImageMessage(phoneNumber, qrCodeResult.base64, MESSAGES.FOUND_CAPTION);
         
-        // Salvar mensagens
-        await this.saveMessage(phoneNumber, MESSAGES.FOUND_CAPTION, 'out', 'image');
+        // Salvar mensagem de QR Code (marcar como qrcodeMessage: true)
+        await this.saveMessage(phoneNumber, MESSAGES.FOUND_CAPTION, 'out', 'image', true);
         
         return {
           success: true,
@@ -208,7 +208,7 @@ export class ConversationService {
   /**
    * Salvar mensagem no banco
    */
-  private async saveMessage(phoneNumber: string, messageText: string, direction: 'in' | 'out', kind: 'text' | 'image'): Promise<void> {
+  private async saveMessage(phoneNumber: string, messageText: string, direction: 'in' | 'out', kind: 'text' | 'image', qrcodeMessage: boolean = false): Promise<void> {
     try {
       await Message.create({
         from: phoneNumber,
@@ -217,6 +217,7 @@ export class ConversationService {
         status: 'sent',
         direction,
         kind,
+        qrcodeMessage, // 🎯 Marcar se é mensagem de QR Code
       });
     } catch (error) {
       logger.error('Error saving message:', error);

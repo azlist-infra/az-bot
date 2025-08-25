@@ -8,6 +8,7 @@ export interface IMessage extends Document {
   status: 'sent' | 'failed' | 'pending';
   direction: 'in' | 'out';
   kind: 'text' | 'image' | 'system';
+  qrcodeMessage: boolean; // 🎯 Campo para identificar mensagens com QR Code
   meta?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
@@ -50,6 +51,11 @@ const MessageSchema = new Schema<IMessage>(
       required: true,
       default: 'text',
     },
+    qrcodeMessage: {
+      type: Boolean,
+      required: true,
+      default: false, // Por padrão, não é mensagem de QR Code
+    },
     meta: {
       type: Schema.Types.Mixed,
       default: {},
@@ -65,5 +71,6 @@ const MessageSchema = new Schema<IMessage>(
 MessageSchema.index({ from: 1, createdAt: -1 });
 MessageSchema.index({ status: 1, direction: 1 });
 MessageSchema.index({ deliveredAt: -1 });
+MessageSchema.index({ qrcodeMessage: 1 }); // 🎯 Index para buscar mensagens de QR Code
 
 export const Message = mongoose.model<IMessage>('Message', MessageSchema);
