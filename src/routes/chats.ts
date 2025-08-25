@@ -11,6 +11,13 @@ const chatController = ChatController.getInstance();
 router.post('/sync', chatController.syncChats.bind(chatController));
 
 /**
+ * POST /api/chats/sync-pages
+ * Sincronizar páginas específicas de chats
+ * Body: { startPage: 11, endPage: 15, pageSize: 50 }
+ */
+router.post('/sync-pages', chatController.syncChatsByPages.bind(chatController));
+
+/**
  * GET /api/chats/stats
  * Obter estatísticas dos chats
  * NOTA: Esta rota deve vir antes de /:phone para evitar conflitos

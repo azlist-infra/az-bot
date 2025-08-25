@@ -153,6 +153,50 @@ export class ChatController {
   }
 
   /**
+   * Sincronização rápida (apenas páginas específicas)
+   * POST /api/chats/sync-pages
+   * Body: { startPage: 11, endPage: 15, pageSize: 50 }
+   */
+  public async syncChatsByPages(req: Request, res: Response): Promise<void> {
+    try {
+      const { startPage = 1, endPage = 1, pageSize = 50 } = req.body;
+      
+      logger.info(`Sync pages requested: ${startPage} to ${endPage}, pageSize: ${pageSize}`);
+
+      const result = await this.chatService.syncChatsByPages(startPage, endPage, pageSize);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: result.message,
+          data: {
+            synced: result.synced,
+            errors: result.errors,
+            pages: `${startPage}-${endPage}`
+          }
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message,
+          data: {
+            synced: result.synced,
+            errors: result.errors
+          }
+        });
+      }
+
+    } catch (error) {
+      logger.error('Error in sync pages endpoint:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during page synchronization',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
    * Marcar chat como tendo mensagem enviada
    * PATCH /api/chats/:phone/mark-sent
    */

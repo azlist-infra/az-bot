@@ -466,6 +466,10 @@ export class ZAPIService {
             logger.info(`Page ${currentPage} returned ${chatsFromPage.length} < ${pageSize}. This is likely the last page.`);
           } else {
             currentPage++;
+            
+            // ⏱️ DELAY entre páginas para evitar timeout e rate limiting
+            logger.info(`Waiting 1 second before next page to avoid timeout...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
         }
       }

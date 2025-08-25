@@ -39,14 +39,33 @@ export class ChatService {
       let syncedCount = 0;
       let errorCount = 0;
 
-      // Processar cada chat
-      for (const chatData of chatsFromAPI) {
-        try {
-          await this.saveChatToDatabase(chatData);
-          syncedCount++;
-        } catch (error) {
-          logger.error(`Error saving chat ${chatData.phone}:`, error);
-          errorCount++;
+      // 📦 Processar em lotes para evitar timeout
+      const batchSize = 25; // Salvar 25 chats por vez
+      
+      for (let i = 0; i < chatsFromAPI.length; i += batchSize) {
+        const batch = chatsFromAPI.slice(i, i + batchSize);
+        logger.info(`Processing batch ${Math.floor(i / batchSize) + 1}: chats ${i + 1} to ${Math.min(i + batchSize, chatsFromAPI.length)}`);
+        
+        // Processar cada chat do lote
+        for (const chatData of batch) {
+          try {
+            await this.saveChatToDatabase(chatData);
+            syncedCount++;
+            
+            // Log progresso a cada 50 chats
+            if (syncedCount % 50 === 0) {
+              logger.info(`✅ Progress: ${syncedCount}/${chatsFromAPI.length} chats synchronized`);
+            }
+          } catch (error) {
+            logger.error(`Error saving chat ${chatData.phone}:`, error);
+            errorCount++;
+          }
+        }
+        
+        // ⏱️ Pequeno delay entre lotes para não sobrecarregar
+        if (i + batchSize < chatsFromAPI.length) {
+          logger.info(`Waiting 500ms before next batch...`);
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
 
@@ -158,6 +177,91 @@ export class ChatService {
     } catch (error) {
       logger.error(`Error marking chat as sent for ${phone}:`, error);
       return false;
+    }
+  }
+
+  /**
+   * Sincronizar páginas específicas de chats
+   */
+  public async syncChatsByPages(startPage: number, endPage: number, pageSize: number): Promise<{ success: boolean; synced: number; errors: number; message: string }> {
+    try {
+      logger.info(`Starting partial chat sync: pages ${startPage} to ${endPage} with pageSize ${pageSize}`);
+
+      let allChats: ZAPIChatData[] = [];
+      let syncedCount = 0;
+      let errorCount = 0;
+
+      // Buscar páginas específicas
+      for (let page = startPage; page <= endPage; page++) {
+        logger.info(`Fetching page ${page}...`);
+        
+        const chatsFromPage = await this.zapiService.getChats(page, pageSize);
+        
+        if (chatsFromPage.length === 0) {
+          logger.info(`Page ${page} has no chats. Skipping.`);
+          continue;
+        }
+
+        allChats.push(...chatsFromPage);
+        logger.info(`Page ${page}: ${chatsFromPage.length} chats`);
+
+        // ⏱️ Delay entre páginas
+        if (page < endPage) {
+          logger.info(`Waiting 1 second before next page...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
+      if (allChats.length === 0) {
+        return {
+          success: false,
+          synced: 0,
+          errors: 0,
+          message: `No chats found in pages ${startPage}-${endPage}`
+        };
+      }
+
+      // Processar em lotes
+      const batchSize = 25;
+      
+      for (let i = 0; i < allChats.length; i += batchSize) {
+        const batch = allChats.slice(i, i + batchSize);
+        logger.info(`Processing batch: chats ${i + 1} to ${Math.min(i + batchSize, allChats.length)}`);
+        
+        for (const chatData of batch) {
+          try {
+            await this.saveChatToDatabase(chatData);
+            syncedCount++;
+          } catch (error) {
+            logger.error(`Error saving chat ${chatData.phone}:`, error);
+            errorCount++;
+          }
+        }
+        
+        // Delay entre lotes
+        if (i + batchSize < allChats.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      const message = `Synchronized ${syncedCount} chats from pages ${startPage}-${endPage}, ${errorCount} errors`;
+      logger.info(message);
+
+      return {
+        success: true,
+        synced: syncedCount,
+        errors: errorCount,
+        message
+      };
+
+    } catch (error) {
+      logger.error('Error during partial chat synchronization:', error);
+      return {
+        success: false,
+        synced: 0,
+        errors: 1,
+        message: `Failed to synchronize pages ${startPage}-${endPage}`
+      };
     }
   }
 
