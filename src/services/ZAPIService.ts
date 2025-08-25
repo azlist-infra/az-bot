@@ -438,7 +438,7 @@ export class ZAPIService {
    * Get ALL chats from Z-API using pagination
    * Busca automaticamente todas as páginas até não ter mais dados
    */
-  public async getAllChats(pageSize: number = 100): Promise<ZAPIChatData[]> {
+  public async getAllChats(pageSize: number = 50): Promise<ZAPIChatData[]> {
     try {
       logger.info(`Starting to fetch ALL chats with pageSize: ${pageSize}`);
       

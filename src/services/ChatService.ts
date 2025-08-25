@@ -25,7 +25,7 @@ export class ChatService {
       logger.info('Starting chat synchronization from Z-API');
 
       // Buscar TODOS os chats da Z-API usando paginação
-      const chatsFromAPI = await this.zapiService.getAllChats(100); // 100 chats por página
+      const chatsFromAPI = await this.zapiService.getAllChats(50); // 50 chats por página (mais estável)
 
       if (chatsFromAPI.length === 0) {
         return {
