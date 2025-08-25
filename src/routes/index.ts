@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import webhookRoutes from './webhook';
 import { chatRoutes } from './chats';
+import { paxRoutes } from './pax'; // 🎯 Import das rotas de PAX
 
 const router = Router();
 
@@ -9,6 +10,9 @@ router.use('/webhook', webhookRoutes);
 
 // Mount chat routes
 router.use('/chats', chatRoutes);
+
+// Mount pax routes
+router.use('/pax', paxRoutes); // 🎯 Mount das rotas de PAX
 
 // Health check for the entire API
 router.get('/health', (req, res) => {
