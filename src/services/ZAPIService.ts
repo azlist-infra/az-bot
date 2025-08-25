@@ -392,18 +392,22 @@ export class ZAPIService {
   }
 
   /**
-   * Get all chats from Z-API
-   * GET /chats
+   * Get all chats from Z-API with pagination
+   * GET /chats?page=X&pageSize=Y
    */
-  public async getChats(): Promise<ZAPIChatData[]> {
+  public async getChats(page?: number, pageSize?: number): Promise<ZAPIChatData[]> {
     try {
-      logger.info('Fetching chats from Z-API');
+      const params: any = {};
+      if (page !== undefined) params.page = page;
+      if (pageSize !== undefined) params.pageSize = pageSize;
 
-      const response: AxiosResponse = await this.axiosInstance.get('/chats');
+      logger.info(`Fetching chats from Z-API`, { page, pageSize });
+
+      const response: AxiosResponse = await this.axiosInstance.get('/chats', { params });
 
       if (response.data && response.status === 200) {
         const chats = Array.isArray(response.data) ? response.data : [];
-        logger.info(`Successfully fetched ${chats.length} chats from Z-API`);
+        logger.info(`Successfully fetched ${chats.length} chats from Z-API (page: ${page || 'all'})`);
         return chats;
       } else {
         logger.error('Failed to fetch chats from Z-API:', response.data);
@@ -419,11 +423,58 @@ export class ZAPIService {
           status,
           message,
           data: error.response?.data,
+          page,
+          pageSize
         });
       } else {
         logger.error('Unexpected error fetching chats:', error);
       }
       
+      return [];
+    }
+  }
+
+  /**
+   * Get ALL chats from Z-API using pagination
+   * Busca automaticamente todas as páginas até não ter mais dados
+   */
+  public async getAllChats(pageSize: number = 100): Promise<ZAPIChatData[]> {
+    try {
+      logger.info(`Starting to fetch ALL chats with pageSize: ${pageSize}`);
+      
+      const allChats: ZAPIChatData[] = [];
+      let currentPage = 1;
+      let hasMoreData = true;
+
+      while (hasMoreData) {
+        logger.info(`Fetching page ${currentPage}...`);
+        
+        const chatsFromPage = await this.getChats(currentPage, pageSize);
+        
+        if (chatsFromPage.length === 0) {
+          // Não há mais dados
+          hasMoreData = false;
+          logger.info(`No more data found at page ${currentPage}. Stopping.`);
+        } else {
+          // Adicionar chats desta página
+          allChats.push(...chatsFromPage);
+          logger.info(`Page ${currentPage}: ${chatsFromPage.length} chats. Total so far: ${allChats.length}`);
+          
+          // Se retornou menos que o pageSize, provavelmente é a última página
+          if (chatsFromPage.length < pageSize) {
+            hasMoreData = false;
+            logger.info(`Page ${currentPage} returned ${chatsFromPage.length} < ${pageSize}. This is likely the last page.`);
+          } else {
+            currentPage++;
+          }
+        }
+      }
+
+      logger.info(`✅ Successfully fetched ALL ${allChats.length} chats from Z-API in ${currentPage} pages`);
+      return allChats;
+
+    } catch (error) {
+      logger.error('Error fetching all chats with pagination:', error);
       return [];
     }
   }
