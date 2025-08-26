@@ -31,21 +31,23 @@ export class PaxQueueController {
         res.status(200).json({
           success: true,
           message: result.message,
-          data: {
-            pax: {
-              id: result.pax._id,
-              name: result.pax.name,
-              cpf: result.pax.cpf,
-              phoneNumber: result.pax.phoneNumber,
-              email: result.pax.email,
-              sequenceId: result.pax.sequenceId,
-              createdAt: result.pax.createdAt,
+                      data: {
+              pax: {
+                id: result.pax._id,
+                name: result.pax.name,
+                cpf: result.pax.cpf,
+                phoneNumber: result.pax.phoneNumber,
+                email: result.pax.email,
+                unavailable: result.pax.unavailable, // 🎯 Incluir campo unavailable
+                sequenceId: result.pax.sequenceId,
+                createdAt: result.pax.createdAt,
+              },
+              queueInfo: {
+                position: result.queuePosition,
+                totalInQueue: result.totalInQueue,
+                unavailableCount: result.unavailableCount, // 🎯 Incluir contagem de unavailable
+              },
             },
-            queueInfo: {
-              position: result.queuePosition,
-              totalInQueue: result.totalInQueue,
-            },
-          },
         });
       } else {
         res.status(404).json({
@@ -59,6 +61,55 @@ export class PaxQueueController {
       res.status(500).json({
         success: false,
         message: 'Internal server error getting next pax',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  /**
+   * 🎯 PATCH /api/pax/update-unavailable/:id
+   * Marcar PAX como indisponível e mover para fim da fila
+   */
+  public async updatePaxAsUnavailable(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: 'Pax ID is required',
+        });
+        return;
+      }
+
+      logger.info(`Update pax as unavailable requested for ID: ${id}`);
+
+      const result = await this.paxQueueService.markPaxAsUnavailable(id);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: result.message,
+          data: {
+            id: result.pax?._id,
+            name: result.pax?.name,
+            phoneNumber: result.pax?.phoneNumber,
+            unavailable: result.pax?.unavailable,
+            sequenceId: result.pax?.sequenceId,
+          },
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: result.message,
+        });
+      }
+
+    } catch (error) {
+      logger.error(`Error in update pax as unavailable endpoint for ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error updating pax as unavailable',
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }

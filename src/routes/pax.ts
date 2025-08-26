@@ -11,6 +11,12 @@ const paxQueueController = PaxQueueController.getInstance();
 router.get('/queue-pax', paxQueueController.getNextPax.bind(paxQueueController));
 
 /**
+ * PATCH /api/pax/update-unavailable/:id
+ * 🎯 Marcar PAX como indisponível e mover para fim da fila
+ */
+router.patch('/update-unavailable/:id', paxQueueController.updatePaxAsUnavailable.bind(paxQueueController));
+
+/**
  * PATCH /api/pax/update-sent/:id
  * 🎯 Marcar PAX como enviado (sent: true)
  */

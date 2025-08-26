@@ -8,6 +8,7 @@ export interface QueueResult {
   message: string;
   queuePosition?: number;
   totalInQueue?: number;
+  unavailableCount?: number; // 🎯 Contagem de unavailable na fila
 }
 
 export interface ImportResult {
@@ -87,7 +88,14 @@ export class PaxQueueService {
         phoneNumber: { $nin: phonesWithQRCode }
       });
 
-      logger.info(`Next pax in queue: ${nextPax.name} (${nextPax.phoneNumber}), position ${queuePosition}/${totalInQueue}`);
+      // 🎯 Contar quantos unavailable temos na fila
+      const unavailableCount = await Pax.countDocuments({
+        unavailable: true,
+        sent: false,
+        phoneNumber: { $nin: phonesWithQRCode }
+      });
+
+      logger.info(`Next pax in queue: ${nextPax.name} (${nextPax.phoneNumber}), position ${queuePosition}/${totalInQueue}, unavailable: ${unavailableCount}`);
 
       return {
         success: true,
@@ -95,6 +103,7 @@ export class PaxQueueService {
         message: `Next pax found: ${nextPax.name}`,
         queuePosition,
         totalInQueue,
+        unavailableCount, // 🎯 Retornar contagem de unavailable
       };
 
     } catch (error) {
@@ -102,6 +111,63 @@ export class PaxQueueService {
       return {
         success: false,
         message: 'Internal error getting next pax in queue',
+      };
+    }
+  }
+
+  /**
+   * 🎯 Marcar PAX como indisponível e mover para fim da fila
+   */
+  public async markPaxAsUnavailable(paxId: string): Promise<{ success: boolean; message: string; pax?: IPax }> {
+    try {
+      logger.info(`Marking pax as unavailable and moving to end of queue: ${paxId}`);
+
+      // 1️⃣ Buscar o PAX atual
+      const currentPax = await Pax.findById(paxId);
+      if (!currentPax) {
+        return {
+          success: false,
+          message: 'Pax not found',
+        };
+      }
+
+      // 2️⃣ Buscar o maior sequenceId atual para adicionar no final da fila
+      const maxSequencePax = await Pax.findOne({}, { sequenceId: 1 })
+        .sort({ sequenceId: -1 })
+        .lean();
+
+      const newSequenceId = (maxSequencePax?.sequenceId || 0) + 1;
+
+      // 3️⃣ Atualizar PAX: marcar como unavailable e mover para fim da fila
+      const updatedPax = await Pax.findByIdAndUpdate(
+        paxId,
+        { 
+          unavailable: true,
+          sequenceId: newSequenceId // 🎯 Mover para fim da fila
+        },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedPax) {
+        return {
+          success: false,
+          message: 'Error updating pax',
+        };
+      }
+
+      logger.info(`Pax marked as unavailable and moved to end: ${updatedPax.name} (${updatedPax.phoneNumber}) - new sequenceId: ${newSequenceId}`);
+
+      return {
+        success: true,
+        message: `Pax ${updatedPax.name} marked as unavailable and moved to end of queue`,
+        pax: updatedPax,
+      };
+
+    } catch (error) {
+      logger.error(`Error marking pax as unavailable (${paxId}):`, error);
+      return {
+        success: false,
+        message: 'Internal error marking pax as unavailable',
       };
     }
   }
@@ -227,6 +293,7 @@ export class PaxQueueService {
     pending: number;
     withQRCode: number;
     nextInQueue: number;
+    unavailable: number; // 🎯 Total de unavailable
   }> {
     try {
       const total = await Pax.countDocuments();
@@ -247,6 +314,9 @@ export class PaxQueueService {
         phoneNumber: { $nin: phonesWithQRCode }
       });
 
+      // 🎯 Total de unavailable
+      const unavailable = await Pax.countDocuments({ unavailable: true });
+
       const pending = total - sent;
 
       return {
@@ -255,6 +325,7 @@ export class PaxQueueService {
         pending,
         withQRCode,
         nextInQueue,
+        unavailable, // 🎯 Incluir contagem de unavailable
       };
 
     } catch (error) {
@@ -265,6 +336,7 @@ export class PaxQueueService {
         pending: 0,
         withQRCode: 0,
         nextInQueue: 0,
+        unavailable: 0, // 🎯 Incluir na resposta de erro também
       };
     }
   }
