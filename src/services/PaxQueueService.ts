@@ -57,12 +57,27 @@ export class PaxQueueService {
       // 2️⃣ Buscar próximo PAX que:
       // - sent: false (não foi marcado como enviado)
       // - telefone NÃO está na lista de quem já recebeu QR
-      const nextPax = await Pax.findOne({
+      // 🎯 PRIORIDADE: unavailable: false primeiro, depois unavailable: true
+      
+      // Primeiro: tentar buscar PAX disponível (unavailable: false)
+      let nextPax = await Pax.findOne({
         sent: false,
+        unavailable: false, // 🎯 Priorizar disponíveis
         phoneNumber: { $nin: phonesWithQRCode } // Excluir quem já recebeu QR
       })
       .sort({ sequenceId: 1 }) // Ordem da fila (menor sequenceId primeiro)
       .lean();
+
+      // Se não encontrou nenhum disponível, buscar indisponíveis (unavailable: true)
+      if (!nextPax) {
+        nextPax = await Pax.findOne({
+          sent: false,
+          unavailable: true, // 🎯 Agora buscar os indisponíveis
+          phoneNumber: { $nin: phonesWithQRCode } // Excluir quem já recebeu QR
+        })
+        .sort({ sequenceId: 1 }) // Ordem da fila (menor sequenceId primeiro)
+        .lean();
+      }
 
       if (!nextPax) {
         // Verificar estatísticas da fila
@@ -95,7 +110,7 @@ export class PaxQueueService {
         phoneNumber: { $nin: phonesWithQRCode }
       });
 
-      logger.info(`Next pax in queue: ${nextPax.name} (${nextPax.phoneNumber}), position ${queuePosition}/${totalInQueue}, unavailable: ${unavailableCount}`);
+      logger.info(`Next pax in queue: ${nextPax.name} (${nextPax.phoneNumber}), position ${queuePosition}/${totalInQueue}, unavailable: ${nextPax.unavailable ? 'YES' : 'NO'}, total unavailable in queue: ${unavailableCount}`);
 
       return {
         success: true,
