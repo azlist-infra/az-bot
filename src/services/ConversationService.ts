@@ -76,35 +76,22 @@ export class ConversationService {
       
       // Determinar o tipo de mensagem baseado no conteúdo
       if (numbersOnly.length === 0) {
-        // Mensagem sem números = prompt inicial
+        // Mensagem sem números = prompt inicial (apenas textos puros)
         logger.info(`No numbers found, sending initial prompt`);
         return await this.sendInitialPrompt(phoneNumber);
-      } else if (numbersOnly.length >= 8 && numbersOnly.length <= 14) {
-        // Mensagem com 8-14 dígitos = tentativa de CPF
-        let cpfToValidate = numbersOnly;
-        
-        // Padronizar para 11 dígitos se necessário
-        if (numbersOnly.length === 10) {
-          cpfToValidate = '0' + numbersOnly; // adicionar zero na frente
-        } else if (numbersOnly.length === 11) {
-          cpfToValidate = numbersOnly; // já está correto
-        } else {
-          // CPF com formato inválido (muito curto ou muito longo)
-          logger.info(`Invalid CPF format: ${numbersOnly.length} digits`);
-          return await this.sendInvalidCpfMessage(phoneNumber);
-        }
-        
-        logger.info(`Processing CPF candidate: ${cpfToValidate}`);
-        return await this.processCPF(phoneNumber, cpfToValidate);
+      } else if (numbersOnly.length === 11) {
+        // Exatamente 11 dígitos = candidato a CPF válido
+        logger.info(`Processing 11-digit CPF candidate: ${numbersOnly}`);
+        return await this.processCPF(phoneNumber, numbersOnly);
+      } else if (numbersOnly.length === 10) {
+        // 10 dígitos = CPF sem zero inicial (adicionar zero)
+        const cpfWithZero = '0' + numbersOnly;
+        logger.info(`Processing 10-digit CPF candidate (adding zero): ${cpfWithZero}`);
+        return await this.processCPF(phoneNumber, cpfWithZero);
       } else {
-        // Mensagem com números mas não parece CPF
-        if (numbersOnly.length < 8) {
-          logger.info(`Too few digits for CPF: ${numbersOnly.length}, sending initial prompt`);
-          return await this.sendInitialPrompt(phoneNumber);
-        } else {
-          logger.info(`Too many digits for CPF: ${numbersOnly.length}, sending invalid CPF message`);
-          return await this.sendInvalidCpfMessage(phoneNumber);
-        }
+        // Qualquer outra quantidade de números = CPF inválido
+        logger.info(`Invalid CPF format: ${numbersOnly.length} digits, sending invalid CPF message`);
+        return await this.sendInvalidCpfMessage(phoneNumber);
       }
     } catch (error) {
       logger.error('Error processing message:', error);
