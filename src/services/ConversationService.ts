@@ -65,33 +65,46 @@ export class ConversationService {
       
       logger.info(`Processing message from ${phoneNumber}: "${messageText}"`);
 
-      // Verificar se parece com CPF (extrair números e ver se tem pelo menos 10-11 dígitos)
+      // Extrair números da mensagem
       const numbersOnly = messageText.replace(/\D/g, '');
       
-      let potentialCpf = null;
-      
-      // Se tem entre 10-11 dígitos, considerar como tentativa de CPF
-      if (numbersOnly.length >= 10 && numbersOnly.length <= 11) {
-        potentialCpf = numbersOnly.padStart(11, '0'); // completar com zeros se necessário
-      }
-      // Ou se tem exatamente 11 dígitos em qualquer lugar da mensagem
-      else if (numbersOnly.length === 11) {
-        potentialCpf = numbersOnly;
-      }
-      
-      logger.info(`CPF detection from "${messageText}":`, {
-        potentialCpf,
-        messageLength: messageText.length
+      logger.info(`Message analysis from "${messageText}":`, {
+        numbersOnly,
+        numbersLength: numbersOnly.length,
+        originalLength: messageText.length
       });
       
-      if (potentialCpf) {
-        // Parece ser um CPF, processar (vai validar na API ou dar erro)
-        logger.info(`Processing potential CPF: ${potentialCpf}`);
-        return await this.processCPF(phoneNumber, potentialCpf);
-      } else {
-        // Qualquer outra mensagem = pedir CPF
-        logger.info(`No CPF pattern found in message, sending initial prompt`);
+      // Determinar o tipo de mensagem baseado no conteúdo
+      if (numbersOnly.length === 0) {
+        // Mensagem sem números = prompt inicial
+        logger.info(`No numbers found, sending initial prompt`);
         return await this.sendInitialPrompt(phoneNumber);
+      } else if (numbersOnly.length >= 8 && numbersOnly.length <= 14) {
+        // Mensagem com 8-14 dígitos = tentativa de CPF
+        let cpfToValidate = numbersOnly;
+        
+        // Padronizar para 11 dígitos se necessário
+        if (numbersOnly.length === 10) {
+          cpfToValidate = '0' + numbersOnly; // adicionar zero na frente
+        } else if (numbersOnly.length === 11) {
+          cpfToValidate = numbersOnly; // já está correto
+        } else {
+          // CPF com formato inválido (muito curto ou muito longo)
+          logger.info(`Invalid CPF format: ${numbersOnly.length} digits`);
+          return await this.sendInvalidCpfMessage(phoneNumber);
+        }
+        
+        logger.info(`Processing CPF candidate: ${cpfToValidate}`);
+        return await this.processCPF(phoneNumber, cpfToValidate);
+      } else {
+        // Mensagem com números mas não parece CPF
+        if (numbersOnly.length < 8) {
+          logger.info(`Too few digits for CPF: ${numbersOnly.length}, sending initial prompt`);
+          return await this.sendInitialPrompt(phoneNumber);
+        } else {
+          logger.info(`Too many digits for CPF: ${numbersOnly.length}, sending invalid CPF message`);
+          return await this.sendInvalidCpfMessage(phoneNumber);
+        }
       }
     } catch (error) {
       logger.error('Error processing message:', error);
@@ -100,6 +113,31 @@ export class ConversationService {
         action: 'error',
         messagesSent: 0,
         error: 'Error processing message',
+      };
+    }
+  }
+
+  /**
+   * Enviar mensagem de CPF inválido
+   */
+  private async sendInvalidCpfMessage(phoneNumber: string): Promise<MessageProcessingResult> {
+    try {
+      const { service } = this.getMessagingService();
+      await service.sendTextMessage(phoneNumber, MESSAGES.INVALID_CPF);
+      await this.saveMessage(phoneNumber, MESSAGES.INVALID_CPF, 'out', 'text');
+      
+      return {
+        success: true,
+        action: 'cpf_not_found', // usar a mesma action que CPF não encontrado
+        messagesSent: 1,
+      };
+    } catch (error) {
+      logger.error('Error sending invalid CPF message:', error);
+      return {
+        success: false,
+        action: 'error',
+        messagesSent: 0,
+        error: 'Error sending invalid CPF message',
       };
     }
   }
@@ -136,16 +174,20 @@ export class ConversationService {
     try {
       // Primeiro verificar se CPF tem formato básico válido
       if (cpf.length !== 11 || !/^\d{11}$/.test(cpf)) {
-        logger.info(`CPF ${cpf} has invalid format, sending NOT_FOUND message`);
-        const { service } = this.getMessagingService();
-        await service.sendTextMessage(phoneNumber, MESSAGES.NOT_FOUND);
-        await this.saveMessage(phoneNumber, MESSAGES.NOT_FOUND, 'out', 'text');
-        
-        return {
-          success: true,
-          action: 'cpf_not_found',
-          messagesSent: 1,
-        };
+        logger.info(`CPF ${cpf} has invalid basic format, sending INVALID_CPF message`);
+        return await this.sendInvalidCpfMessage(phoneNumber);
+      }
+      
+      // Verificar se CPF não é uma sequência de números iguais (ex: 11111111111)
+      if (/^(\d)\1{10}$/.test(cpf)) {
+        logger.info(`CPF ${cpf} has all same digits, sending INVALID_CPF message`);
+        return await this.sendInvalidCpfMessage(phoneNumber);
+      }
+      
+      // Validar dígitos verificadores do CPF
+      if (!isValidCpf(cpf)) {
+        logger.info(`CPF ${cpf} has invalid check digits, sending INVALID_CPF message`);
+        return await this.sendInvalidCpfMessage(phoneNumber);
       }
       
       // Validar CPF na AZ List
