@@ -1,9 +1,11 @@
 import { Message } from '@/models/Message';
 import { AZListService } from './AZListService';
 import { ZAPIService } from './ZAPIService';
+import { ZapsterService } from './ZapsterService';
 import { QRCodeService } from './QRCodeService';
 import { isValidCpf, extractCpfFromMessage } from '@/utils/cpf';
 import { MESSAGES } from '@/config/messages';
+import { config } from '@/config/environment';
 import { logger } from '@/utils/logger';
 
 export interface MessageProcessingResult {
@@ -17,11 +19,13 @@ export class ConversationService {
   private static instance: ConversationService;
   private azListService: AZListService;
   private zapiService: ZAPIService;
+  private zapsterService: ZapsterService;
   private qrCodeService: QRCodeService;
   
   private constructor() {
     this.azListService = AZListService.getInstance();
     this.zapiService = ZAPIService.getInstance();
+    this.zapsterService = ZapsterService.getInstance();
     this.qrCodeService = QRCodeService.getInstance();
   }
 
@@ -30,6 +34,25 @@ export class ConversationService {
       ConversationService.instance = new ConversationService();
     }
     return ConversationService.instance;
+  }
+
+  /**
+   * Get the active messaging service based on configuration
+   */
+  private getMessagingService() {
+    if (config.zapster.enabled) {
+      logger.info('Using Zapster service for messaging');
+      return {
+        service: this.zapsterService,
+        type: 'zapster' as const
+      };
+    } else {
+      logger.info('Using Z-API service for messaging');
+      return {
+        service: this.zapiService,
+        type: 'zapi' as const
+      };
+    }
   }
 
   /**
@@ -86,7 +109,8 @@ export class ConversationService {
    */
   private async sendInitialPrompt(phoneNumber: string): Promise<MessageProcessingResult> {
     try {
-      await this.zapiService.sendTextMessage(phoneNumber, MESSAGES.INITIAL_PROMPT);
+      const { service } = this.getMessagingService();
+      await service.sendTextMessage(phoneNumber, MESSAGES.INITIAL_PROMPT);
       await this.saveMessage(phoneNumber, MESSAGES.INITIAL_PROMPT, 'out', 'text');
       
       return {
@@ -113,7 +137,8 @@ export class ConversationService {
       // Primeiro verificar se CPF tem formato básico válido
       if (cpf.length !== 11 || !/^\d{11}$/.test(cpf)) {
         logger.info(`CPF ${cpf} has invalid format, sending NOT_FOUND message`);
-        await this.zapiService.sendTextMessage(phoneNumber, MESSAGES.NOT_FOUND);
+        const { service } = this.getMessagingService();
+        await service.sendTextMessage(phoneNumber, MESSAGES.NOT_FOUND);
         await this.saveMessage(phoneNumber, MESSAGES.NOT_FOUND, 'out', 'text');
         
         return {
@@ -166,7 +191,8 @@ export class ConversationService {
         };
         
         // Enviar QR Code como imagem
-        await this.zapiService.sendImageMessage(phoneNumber, qrCodeResult.base64, MESSAGES.FOUND_CAPTION);
+        const { service } = this.getMessagingService();
+        await service.sendImageMessage(phoneNumber, qrCodeResult.base64, MESSAGES.FOUND_CAPTION);
         
         // Salvar mensagem de QR Code (marcar como qrcodeMessage: true)
         await this.saveMessage(phoneNumber, MESSAGES.FOUND_CAPTION, 'out', 'image', true);
@@ -179,7 +205,8 @@ export class ConversationService {
       } else {
         // CPF não encontrado
         logger.info(`CPF ${cpf} not found, sending NOT_FOUND message`);
-        await this.zapiService.sendTextMessage(phoneNumber, MESSAGES.NOT_FOUND);
+        const { service } = this.getMessagingService();
+        await service.sendTextMessage(phoneNumber, MESSAGES.NOT_FOUND);
         await this.saveMessage(phoneNumber, MESSAGES.NOT_FOUND, 'out', 'text');
         
         return {
@@ -193,7 +220,8 @@ export class ConversationService {
       
       // Enviar mensagem de erro
       const errorMessage = 'Desculpe, ocorreu um erro interno. Tente novamente em alguns minutos.';
-      await this.zapiService.sendTextMessage(phoneNumber, errorMessage);
+      const { service } = this.getMessagingService();
+      await service.sendTextMessage(phoneNumber, errorMessage);
       await this.saveMessage(phoneNumber, errorMessage, 'out', 'text');
       
       return {

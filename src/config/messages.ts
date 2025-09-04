@@ -25,7 +25,7 @@ export const MESSAGES = {
   NOT_FOUND: `Que pena, não foi possível localizar o seu agendamento.
 
 Caso já tenha feito o agendamento, verifique o horário e o seu QR Code de acesso no link abaixo:
-https://www.azcorporate.com.br/bvolt/46110/fenty \n
+https://www.azcorporate.com.br/tm1/46367/nba-house \n
 
 Lembrando que os horarios já foram todos agendados, 
 caso não tenha feito o agendamento previamente, é possível comparecer no dia sem hora marcada.

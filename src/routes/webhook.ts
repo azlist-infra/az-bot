@@ -10,9 +10,9 @@ const webhookController = WebhookController.getInstance();
  * POST/PUT /webhook/zapi/receive
  */
 // Common handler for all HTTP methods
-const handleWebhook = async (req: any, res: any) => {
+const handleZAPIWebhook = async (req: any, res: any) => {
   try {
-    logger.info(`Webhook received via ${req.method}`, {
+    logger.info(`Z-API Webhook received via ${req.method}`, {
       method: req.method,
       url: req.url,
       body: req.body,
@@ -22,7 +22,7 @@ const handleWebhook = async (req: any, res: any) => {
     });
     await webhookController.handleZAPIWebhook(req, res);
   } catch (error) {
-    logger.error('Error in webhook route:', error);
+    logger.error('Error in Z-API webhook route:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error',
@@ -30,9 +30,41 @@ const handleWebhook = async (req: any, res: any) => {
   }
 };
 
-router.post('/zapi/receive', handleWebhook);
-router.put('/zapi/receive', handleWebhook);
-router.get('/zapi/receive', handleWebhook);
+/**
+ * Zapster Webhook endpoint
+ * POST /webhook/zapster/receive
+ */
+const handleZapsterWebhook = async (req: any, res: any) => {
+  try {
+    logger.info(`Zapster Webhook received via ${req.method}`, {
+      method: req.method,
+      url: req.url,
+      body: req.body,
+      query: req.query,
+      headers: req.headers,
+      ip: req.ip
+    });
+    await webhookController.handleZapsterWebhook(req, res);
+  } catch (error) {
+    logger.error('Error in Zapster webhook route:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
+
+router.post('/zapi/receive', handleZAPIWebhook);
+router.put('/zapi/receive', handleZAPIWebhook);
+router.get('/zapi/receive', handleZAPIWebhook);
+
+/**
+ * Zapster Webhook routes
+ * POST /webhook/zapster/receive
+ */
+router.post('/zapster/receive', handleZapsterWebhook);
+router.put('/zapster/receive', handleZapsterWebhook);
+router.get('/zapster/receive', handleZapsterWebhook);
 
 /**
  * Z-API Webhook endpoint with instance ID (correct format)
@@ -42,7 +74,7 @@ router.post('/zapi/:instanceId/receive', async (req, res) => {
   try {
     await webhookController.handleZAPIWebhook(req, res);
   } catch (error) {
-    logger.error('Error in webhook route:', error);
+    logger.error('Error in Z-API webhook route:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error',
@@ -54,7 +86,35 @@ router.put('/zapi/:instanceId/receive', async (req, res) => {
   try {
     await webhookController.handleZAPIWebhook(req, res);
   } catch (error) {
-    logger.error('Error in webhook route:', error);
+    logger.error('Error in Z-API webhook route:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+});
+
+/**
+ * Zapster Webhook endpoint with instance ID (if needed)
+ * POST/PUT /webhook/zapster/:instanceId/receive
+ */
+router.post('/zapster/:instanceId/receive', async (req, res) => {
+  try {
+    await webhookController.handleZapsterWebhook(req, res);
+  } catch (error) {
+    logger.error('Error in Zapster webhook route:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+});
+
+router.put('/zapster/:instanceId/receive', async (req, res) => {
+  try {
+    await webhookController.handleZapsterWebhook(req, res);
+  } catch (error) {
+    logger.error('Error in Zapster webhook route:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error',

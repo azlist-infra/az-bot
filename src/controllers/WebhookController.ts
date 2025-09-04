@@ -1,15 +1,19 @@
 import { Request, Response } from 'express';
 import { ZAPIService, WebhookMessage } from '@/services/ZAPIService';
+import { ZapsterService, ZapsterWebhookMessage } from '@/services/ZapsterService';
 import { ConversationService } from '@/services/ConversationService';
+import { config } from '@/config/environment';
 import { logger } from '@/utils/logger';
 
 export class WebhookController {
   private static instance: WebhookController;
   private zapiService: ZAPIService;
+  private zapsterService: ZapsterService;
   private conversationService: ConversationService;
 
   private constructor() {
     this.zapiService = ZAPIService.getInstance();
+    this.zapsterService = ZapsterService.getInstance();
     this.conversationService = ConversationService.getInstance();
   }
 
@@ -122,19 +126,149 @@ export class WebhookController {
   }
 
   /**
+   * Handle Zapster webhook for received messages
+   */
+  public async handleZapsterWebhook(req: Request, res: Response): Promise<void> {
+    try {
+      const startTime = Date.now();
+      
+      logger.info('Received Zapster webhook', {
+        headers: req.headers,
+        body: req.body,
+        ip: req.ip,
+      });
+
+      // Validate webhook data structure
+      if (!this.zapsterService.validateWebhookData(req.body)) {
+        logger.warn('Invalid Zapster webhook data structure', { body: req.body });
+        
+        // Log detailed info for debugging
+        logger.info('Raw Zapster webhook data for debugging:', {
+          body: JSON.stringify(req.body, null, 2),
+          headers: req.headers,
+          method: req.method,
+          url: req.url
+        });
+        
+        res.status(200).json({
+          success: true,
+          message: 'Data logged for debugging',
+        });
+        return;
+      }
+
+      const webhookData: ZapsterWebhookMessage = req.body;
+
+      // Only process message.received events
+      if (webhookData.type !== 'message.received') {
+        logger.info(`Ignoring Zapster event type: ${webhookData.type}`);
+        res.status(200).json({
+          success: true,
+          message: `Event type ${webhookData.type} ignored`,
+        });
+        return;
+      }
+
+      // Only process text messages for now
+      if (webhookData.data.type !== 'text') {
+        logger.info(`Ignoring Zapster message type: ${webhookData.data.type}`);
+        res.status(200).json({
+          success: true,
+          message: `Message type ${webhookData.data.type} ignored`,
+        });
+        return;
+      }
+
+      // Check if this is an incoming message (Zapster only sends message.received for incoming)
+      if (!this.zapsterService.isIncomingMessage(webhookData)) {
+        logger.info('Ignoring outgoing message');
+        res.status(200).json({
+          success: true,
+          message: 'Outgoing message ignored',
+        });
+        return;
+      }
+
+      // Extract phone number and message text
+      const phoneNumber = this.zapsterService.extractPhoneNumber(webhookData);
+      const messageText = this.zapsterService.extractMessageText(webhookData);
+
+      if (!phoneNumber) {
+        logger.warn('Could not extract phone number from Zapster webhook', { webhookData });
+        res.status(400).json({
+          success: false,
+          error: 'Could not extract phone number',
+        });
+        return;
+      }
+
+      if (!messageText) {
+        logger.info(`Received non-text message from ${phoneNumber}, ignoring`);
+        res.status(200).json({
+          success: true,
+          message: 'Non-text message ignored',
+        });
+        return;
+      }
+
+      logger.info(`Processing Zapster message from ${phoneNumber}: "${messageText}"`);
+
+      // Process the message through conversation service
+      const result = await this.conversationService.processMessage(phoneNumber, messageText);
+
+      const processingTime = Date.now() - startTime;
+
+      logger.info(`Zapster message processed in ${processingTime}ms`, {
+        phoneNumber,
+        result,
+        processingTime,
+      });
+
+      // Return success response
+      res.status(200).json({
+        success: true,
+        action: result.action,
+        messagesSent: result.messagesSent,
+        processingTime,
+        ...(result.error && { error: result.error }),
+      });
+
+    } catch (error) {
+      const processingTime = Date.now() - Date.now();
+      
+      logger.error('Error processing Zapster webhook:', error);
+
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error processing webhook',
+        processingTime,
+      });
+    }
+  }
+
+  /**
    * Health check endpoint for webhook
    */
   public async healthCheck(req: Request, res: Response): Promise<void> {
     try {
-      // Check Z-API connection
-      const zapiStatus = await this.zapiService.healthCheck();
+      // Check services based on configuration
+      const services: any = {};
+      
+      if (config.zapster.enabled) {
+        // Use Zapster
+        const zapsterStatus = await this.zapsterService.healthCheck();
+        services.zapster = zapsterStatus ? 'connected' : 'disconnected';
+      } else {
+        // Use Z-API
+        const zapiStatus = await this.zapiService.healthCheck();
+        services.zapi = zapiStatus ? 'connected' : 'disconnected';
+      }
       
       res.status(200).json({
         success: true,
         status: 'healthy',
-        services: {
-          zapi: zapiStatus ? 'connected' : 'disconnected',
-        },
+        services,
+        activeService: config.zapster.enabled ? 'zapster' : 'zapi',
         timestamp: new Date().toISOString(),
       });
 

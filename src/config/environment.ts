@@ -17,6 +17,20 @@ const envSchema = joi.object({
   ZAPI_TOKEN: joi.string().required(),
   ZAPI_CLIENT_TOKEN: joi.string().optional(),
   
+  // Zapster Configuration
+  ZAPSTER_BASE_URL: joi.string().uri().default('https://api.zapsterapi.com/v1'),
+  ZAPSTER_TOKEN: joi.string().when('USE_ZAPSTER', {
+    is: joi.boolean().truthy(),
+    then: joi.required(),
+    otherwise: joi.optional()
+  }),
+  ZAPSTER_INSTANCE_ID: joi.string().when('USE_ZAPSTER', {
+    is: joi.boolean().truthy(),
+    then: joi.required(),
+    otherwise: joi.optional()
+  }),
+  USE_ZAPSTER: joi.boolean().default(false),
+  
   // AZ List Configuration
   AZLIST_BASE_URL: joi.string().uri().required(),
   AZLIST_TOKEN: joi.string().required(),
@@ -59,6 +73,12 @@ export interface EnvironmentConfig {
     clientToken?: string;
     baseUrl: string;
   };
+  zapster: {
+    baseUrl: string;
+    token?: string;
+    instanceId?: string;
+    enabled: boolean;
+  };
   azList: {
     baseUrl: string;
     token: string;
@@ -92,6 +112,12 @@ export const config: EnvironmentConfig = {
     token: envVars.ZAPI_TOKEN as string,
     clientToken: envVars.ZAPI_CLIENT_TOKEN as string,
     baseUrl: `https://api.z-api.io/instances/${envVars.ZAPI_INSTANCE_ID as string}/token/${envVars.ZAPI_TOKEN as string}`,
+  },
+  zapster: {
+    baseUrl: envVars.ZAPSTER_BASE_URL as string,
+    token: envVars.ZAPSTER_TOKEN as string,
+    instanceId: envVars.ZAPSTER_INSTANCE_ID as string,
+    enabled: envVars.USE_ZAPSTER as boolean,
   },
   azList: {
     baseUrl: envVars.AZLIST_BASE_URL as string,
