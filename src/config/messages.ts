@@ -5,8 +5,8 @@
 
 export const MESSAGES = {
   // Initial greeting when user sends first message
-  INITIAL_PROMPT: `Olá, sou o assistente virtual do *FENTY BEAUTY COFFEE PARTY*  🤩!\n
-  Por aqui você pode consultar o seu QR Code de acesso para evento!\n
+  INITIAL_PROMPT: `Olá, sou o assistente virtual do *AZ List*  🤩!\n
+  Por aqui você pode consultar o seu QR Code de acesso ao evento.\n
   É bem sim simples, vou te ajudar! 🦾\n
 
   Digite o seu CPF, sem espaços, sem pontos, sem hífens, apenas números e sem outro texto.\n
@@ -19,7 +19,7 @@ export const MESSAGES = {
   FOUND_MESSAGE: `Localizamos o seu cadastro, segue o seu QR Code de Acesso.`,
 
   // Caption for QR Code image when found
-  FOUND_CAPTION: `*FENTY BEAUTY COFFEE PARTY SÃO PAULO* 🧡\nA marca de beleza traz uma nova experiência gratuita ao Brasil: um espaço aberto para criar conexões, descobrir o tom perfeito de base Fenty Beauty, tomar um café e se divertir!\n\nPara facilitar seu credenciamento, estamos te enviando o seu *QR Code* que te dará acesso ao evento no dia. É super fácil!\n\nAgora é só se preparar e nos encontramos lá! 🤩\n\nConfira o horário do seu agendamento no link abaixo:\nhttps://www.azcorporate.com.br/bvolt/46110/fenty\n\n📍 Lote Pinheiros | R. Padre João Gonçalves, 80 - Pinheiros\n📅 Data: 30 de agosto de 2025\n⏰ Das 10h00 às 18h00\n\n⚠️ *Atenção*\n⌛ Permanência de até 2 horas por pessoa\n🪪 Apresentar documento com foto\n\nNos vemos lá! 👋🏼`,
+  FOUND_CAPTION: `\n\nSegue o seu QR Code de acesso ao evento. Você pode conferir também no link abaixo:\nhttps://www.azcorporate.com.br/tm1/46367/nba-house\n\n📍 Villaggio JK | R. Funchal, 500 - Vila Olímpia, São Paulo - SP, 04551-060\n📅 Data: 09 de dezembro de 2025\n⏰ Das 15h00 às 18h00\n\nNos vemos lá! 👋🏼`,
 
   // When CPF is not found in AZ List
   NOT_FOUND: `Que pena, não foi possível localizar o seu agendamento.
