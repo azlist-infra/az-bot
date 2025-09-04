@@ -13,9 +13,14 @@ export interface ZapsterSendImageRequest {
   text?: string;
   media: {
     url?: string;
-    file?: string; // base64 encoded image
+    base64?: string; // base64 encoded image
+    caption?: string;
+    fileName?: string;
+    sticker?: boolean;
+    view_once?: boolean;
   };
   instance_id: string;
+  view_once?: boolean;
 }
 
 export interface ZapsterResponse {
@@ -202,7 +207,7 @@ export class ZapsterService {
       
       logger.info(`Sending image message via Zapster to ${cleanPhone} with caption: ${caption ? 'yes' : 'no'}`);
 
-      // For Zapster, we can send base64 directly in the file field
+      // For Zapster, base64 should be in media.base64 field
       // Remove data:image prefix if present
       const imageData = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
 
@@ -210,7 +215,9 @@ export class ZapsterService {
         recipient: cleanPhone,
         instance_id: config.zapster.instanceId,
         media: {
-          file: imageData,
+          base64: imageData,
+          fileName: 'qrcode.png',
+          ...(caption && { caption }),
         },
         ...(caption && { text: caption }),
       };
