@@ -34,12 +34,12 @@ export const MESSAGES = {
   FOUND_CAPTION: `\n\nSegue o seu QR Code de acesso ao evento. Você pode conferir também no link abaixo:\nhttps://www.netflixfeitoaqui.com.br/\n\n📍 Villaggio JK | R. Funchal, 500 - Vila Olímpia, São Paulo - SP, 04551-060\n📅 Data: 09 de dezembro de 2025\n⏰ Das 18h00 às 21h00\n\nNos vemos lá! 👋🏼`,
 
   // When CPF is not found in AZ List
-  NOT_FOUND: `Que pena, não foi possível localizar a sua confirmação de presença.
+  NOT_FOUND: `Que pena! 😕 Não encontramos a sua confirmação de presença..
 
-Caso já tenha feito a confirmação de presença, verifsique o seu QR Code de acesso no link abaixo:
-https://www.netflixfeitoaqui.com.br \n
+Se você já confirmou sua presença, acesse o link abaixo para consultar o seu QR Code de acesso:
+👉 https://www.netflixfeitoaqui.com.br \n
 
-Lembrando que você precisa utilizar O mesmo e-mail que você recebeu o seu convite.
+Lembre-se: é importante utilizar o mesmo e-mail que recebeu o convite.
 `,
 
   // System messages
