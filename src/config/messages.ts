@@ -4,16 +4,27 @@
  */
 
 export const MESSAGES = {
-  // Initial greeting when user sends first message
-  INITIAL_PROMPT: `Olá, sou o assistente virtual do *AZ List*  🤩!\n
+  // Initial greeting when user sends first message - CPF flow
+  INITIAL_PROMPT_CPF: `Olá, sou o assistente virtual do *AZ List*  🤩!\n
   Por aqui você pode consultar o seu QR Code de acesso ao evento.\n
   É bem sim simples, vou te ajudar! 🦾\n
 
   Digite o seu CPF, sem espaços, sem pontos, sem hífens, apenas números e sem outro texto.\n
   Exemplo: 00000000000 `,
 
+  // Initial greeting when user sends first message - Email flow  
+  INITIAL_PROMPT_EMAIL: `Olá, sou o assistente virtual do *AZ List*  🤩!\n
+  Por aqui você pode consultar o seu QR Code de acesso ao evento.\n
+  É bem sim simples, vou te ajudar! 🦾\n
+
+  Digite o seu E-mail utilizado no seu cadastro, sem textos adicionais, apenas o e-mail.\n
+  Exemplo: email@example.com `,
+
   // When CPF format is invalid
   INVALID_CPF: `CPF inválido. Tente novamente (apenas números, 11 dígitos).`,
+
+  // When Email format is invalid
+  INVALID_EMAIL: `E-mail inválido. Tente novamente com um formato válido.\nExemplo: email@example.com`,
 
   // When CPF is found in AZ List
   FOUND_MESSAGE: `Localizamos o seu cadastro, segue o seu QR Code de Acesso.`,
@@ -47,6 +58,20 @@ caso não tenha feito o agendamento previamente, é possível comparecer no dia 
     CPF_ALL_SAME: `CPF não pode ter todos os dígitos iguais. Tente novamente.`,
   },
 } as const;
+
+/**
+ * Get initial prompt message based on flow type
+ */
+export function getInitialPrompt(flowType: 'cpf' | 'email'): string {
+  return flowType === 'email' ? MESSAGES.INITIAL_PROMPT_EMAIL : MESSAGES.INITIAL_PROMPT_CPF;
+}
+
+/**
+ * Get invalid format message based on flow type
+ */
+export function getInvalidFormatMessage(flowType: 'cpf' | 'email'): string {
+  return flowType === 'email' ? MESSAGES.INVALID_EMAIL : MESSAGES.INVALID_CPF;
+}
 
 /**
  * Get personalized message with user data

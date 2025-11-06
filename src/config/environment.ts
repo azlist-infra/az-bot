@@ -36,6 +36,9 @@ const envSchema = joi.object({
   AZLIST_TOKEN: joi.string().required(),
   AZLIST_EVENT_ID: joi.string().required(),
   
+  // Bot Flow Configuration
+  BOT_FLOW_TYPE: joi.string().valid('cpf', 'email').default('cpf'),
+  
   // QR Code Configuration
   QR_SIGN_SECRET: joi.string().optional(),
   QR_WIDTH: joi.number().default(512),
@@ -84,6 +87,9 @@ export interface EnvironmentConfig {
     token: string;
     eventId: string;
   };
+  bot: {
+    flowType: 'cpf' | 'email';
+  };
   qrCode: {
     signSecret?: string;
     width: number;
@@ -123,6 +129,9 @@ export const config: EnvironmentConfig = {
     baseUrl: envVars.AZLIST_BASE_URL as string,
     token: envVars.AZLIST_TOKEN as string,
     eventId: envVars.AZLIST_EVENT_ID as string,
+  },
+  bot: {
+    flowType: envVars.BOT_FLOW_TYPE as 'cpf' | 'email',
   },
   qrCode: {
     signSecret: envVars.QR_SIGN_SECRET as string,

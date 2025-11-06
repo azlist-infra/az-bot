@@ -95,6 +95,113 @@ export class AZListService {
   }
 
   /**
+   * Validates Email against AZ List API
+   * GET /api/pax/email/{email}/event/{eventId}
+   */
+  public async validateEmail(email: string): Promise<CPFValidationResult> {
+    try {
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return {
+          found: false,
+          error: 'Invalid email format',
+        };
+      }
+
+      logger.info(`Validating Email: ${email} against AZ List`);
+
+      const endpoint = `/api/pax/email/${encodeURIComponent(email)}/event/${config.azList.eventId}`;
+      
+      const response = await this.axiosInstance.get(endpoint);
+
+      // Verificar se há erro na resposta
+      if (response.data.error) {
+        logger.info(`Email ${email} not found in AZ List: ${response.data.error}`);
+        
+        return {
+          found: false,
+          error: response.data.error,
+        };
+      }
+
+      // Se chegou aqui e tem dados, é porque encontrou
+      if (response.data && response.data.id) {
+        const pax = response.data;
+        
+        logger.info(`Email ${email} found in AZ List: ${pax.Name}`);
+        
+        return {
+          found: true,
+          userData: {
+            id: pax.id.toString(),
+            name: pax.Name,
+            email: pax.Email,
+            ...(pax.Cpf && { cpf: pax.Cpf }),
+            ...(pax.Phone && { phone: pax.Phone }),
+            searchKey: pax.SearchKey,
+            status: 'active',
+          },
+          lists: [], // API não retorna lists neste formato
+        };
+      } else {
+        logger.info(`Email ${email} not found - unexpected response format`);
+        
+        return {
+          found: false,
+          error: 'Unexpected API response format',
+        };
+      }
+
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const message = error.response?.data?.message || error.message;
+        
+        logger.error(`AZ List API error for Email ${email}:`, {
+          status,
+          message,
+          data: error.response?.data,
+        });
+
+        // Handle specific HTTP status codes
+        if (status === 404) {
+          return {
+            found: false,
+            error: 'Email not found',
+          };
+        }
+
+        if (status === 401 || status === 403) {
+          return {
+            found: false,
+            error: 'Authentication error with AZ List API',
+          };
+        }
+
+        if (status === 429) {
+          return {
+            found: false,
+            error: 'Rate limit exceeded on AZ List API',
+          };
+        }
+
+        return {
+          found: false,
+          error: `AZ List API error: ${message}`,
+        };
+      }
+
+      logger.error(`Unexpected error validating Email ${email}:`, error);
+      
+      return {
+        found: false,
+        error: 'Internal server error during Email validation',
+      };
+    }
+  }
+
+  /**
    * Validates CPF against AZ List API
    * GET /api/pax/cpf/{cpf}/event/{eventId}
    */
