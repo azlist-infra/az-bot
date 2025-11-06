@@ -30,7 +30,7 @@ export const MESSAGES = {
   FOUND_MESSAGE: `Localizamos o seu cadastro, segue o seu QR Code de Acesso.`,
 
   // Caption for QR Code image when found
-  FOUND_CAPTION: `\n\nSegue o seu QR Code de acesso ao evento. Você pode conferir também no link abaixo:\nhttps://www.azcorporate.com.br/tm1/46367/nba-house\n\n📍 Villaggio JK | R. Funchal, 500 - Vila Olímpia, São Paulo - SP, 04551-060\n📅 Data: 09 de dezembro de 2025\n⏰ Das 18h00 às 21h00\n\nNos vemos lá! 👋🏼`,
+  FOUND_CAPTION: `\n\nSegue o seu QR Code de acesso ao evento. Você pode conferir também no link abaixo:\nhttps://www.netflixfeitoaqui.com.br/\n\n📍 Villaggio JK | R. Funchal, 500 - Vila Olímpia, São Paulo - SP, 04551-060\n📅 Data: 09 de dezembro de 2025\n⏰ Das 18h00 às 21h00\n\nNos vemos lá! 👋🏼`,
 
   // When CPF is not found in AZ List
   NOT_FOUND: `Que pena, não foi possível localizar a sua confirmação de presença.
