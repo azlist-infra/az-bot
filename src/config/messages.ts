@@ -14,10 +14,10 @@ export const MESSAGES = {
 
   // Initial greeting when user sends first message - Email flow  
   INITIAL_PROMPT_EMAIL: `Olá, sou o assistente virtual do *AZ List*  🤩!\n
-  Por aqui você pode consultar o seu QR Code de acesso ao evento.\n
-  É bem sim simples, vou te ajudar! 🦾\n
+  Aqui você pode consultar *o seu QR Code de acesso ao evento* de forma rápida e fácil..\n
+  🦾 Vamos lá!\n
 
-  Digite o seu E-mail utilizado no seu cadastro, sem textos adicionais, apenas o e-mail.\n
+  Digite *somente o e-mail* utilizado no seu cadastro — sem textos adicionais.\n
   Exemplo: email@example.com `,
 
   // When CPF format is invalid
@@ -30,16 +30,15 @@ export const MESSAGES = {
   FOUND_MESSAGE: `Localizamos o seu cadastro, segue o seu QR Code de Acesso.`,
 
   // Caption for QR Code image when found
-  FOUND_CAPTION: `\n\nSegue o seu QR Code de acesso ao evento. Você pode conferir também no link abaixo:\nhttps://www.azcorporate.com.br/tm1/46367/nba-house\n\n📍 Villaggio JK | R. Funchal, 500 - Vila Olímpia, São Paulo - SP, 04551-060\n📅 Data: 09 de dezembro de 2025\n⏰ Das 15h00 às 18h00\n\nNos vemos lá! 👋🏼`,
+  FOUND_CAPTION: `\n\nSegue o seu QR Code de acesso ao evento. Você pode conferir também no link abaixo:\nhttps://www.azcorporate.com.br/tm1/46367/nba-house\n\n📍 Villaggio JK | R. Funchal, 500 - Vila Olímpia, São Paulo - SP, 04551-060\n📅 Data: 09 de dezembro de 2025\n⏰ Das 18h00 às 21h00\n\nNos vemos lá! 👋🏼`,
 
   // When CPF is not found in AZ List
-  NOT_FOUND: `Que pena, não foi possível localizar o seu agendamento.
+  NOT_FOUND: `Que pena, não foi possível localizar a sua confirmação de presença.
 
-Caso já tenha feito o agendamento, verifique o horário e o seu QR Code de acesso no link abaixo:
-https://www.azcorporate.com.br/tm1/46367/nba-house \n
+Caso já tenha feito a confirmação de presença, verifsique o seu QR Code de acesso no link abaixo:
+https://www.netflixfeitoaqui.com.br \n
 
-Lembrando que os horarios já foram todos agendados, 
-caso não tenha feito o agendamento previamente, é possível comparecer no dia sem hora marcada.
+Lembrando que você precisa utilizar O mesmo e-mail que você recebeu o seu convite.
 `,
 
   // System messages
