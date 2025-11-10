@@ -5,7 +5,7 @@
 
 export const MESSAGES = {
   // Initial greeting when user sends first message - CPF flow
-  INITIAL_PROMPT_CPF: `Olá, sou o assistente virtual da *Netflix - Feito Aqui*  🤩!\n
+  INITIAL_PROMPT_CPF: `Olá, sou o assistente virtual do *_ Feito Aqui_*  🤩!\n
   Por aqui você pode consultar o seu QR Code de acesso ao evento.\n
   É bem sim simples, vou te ajudar! 🦾\n
 
@@ -13,8 +13,8 @@ export const MESSAGES = {
   Exemplo: 00000000000 `,
 
   // Initial greeting when user sends first message - Email flow  
-  INITIAL_PROMPT_EMAIL: `Olá, sou o assistente virtual do *Netflix - Feito Aqui* 🤩!\n
-  Aqui você pode consultar *o seu QR Code de acesso ao evento* de forma rápida e fácil..\n
+  INITIAL_PROMPT_EMAIL: `Olá, sou o assistente virtual do *_Feito Aqui_* 🤩!\n
+  Aqui você pode consultar *o seu QR Code de acesso ao evento* de forma rápida e fácil.\n
   Outras informações você pode consultar no site do evento: https://www.netflixfeitoaqui.com.br/ \n
   🦾 Vamos lá!\n
 
